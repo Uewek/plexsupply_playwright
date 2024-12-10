@@ -51,3 +51,17 @@ test('Check change shipping cost', async ({ page }) => {
   
 });
 
+test('Check category filtration P-005', async ({ page }) => {
+  const homePage = new PlexsupplyHomePage(page);
+  await homePage.openPage();
+  await homePage.hoverOnNavItem(categories.home);
+  await homePage.hoverOnNavItem(categories.kitchen);
+  await homePage.hoverOnNavItem(categories.glassware);
+  await homePage.openLinkByTitle(categories.glassware);
+  const categoryPage = new PlexsupplyCategoryPage(page);
+  await homePage.submitCookie();
+  await categoryPage.setPriceFilter(20);
+  await categoryPage.openLinkByTitle(filters.orca);
+  await categoryPage.checkResultsOfPriceSearch();
+});
+

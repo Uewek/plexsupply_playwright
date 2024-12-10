@@ -12,7 +12,7 @@ export class PlexsupplyCategoryPage extends BasePage {
     protected readonly closeCartMessageButton: string = '.close-message';
     protected readonly addToCartBtn: string = 'button[title="Add to Cart"]';
     protected readonly priceSlider: string = '.smile-es-range-slider > .ui-slider';
-    protected readonly submitPriceFilterBtn: string = '.a[data-role="apply-range"]';
+    protected readonly submitPriceFilterBtn: string = 'a.action.primary.small';
     protected readonly productQty: string = 'p.toolbar-amount > span.toolbar-number';
     protected readonly displayedProductCard: string = 'main li.item.product.product-item';
     protected readonly productCardFinalPrice: string = 'main li.item.product.product-item';
@@ -51,10 +51,7 @@ export class PlexsupplyCategoryPage extends BasePage {
         await this.page.mouse.down();
         await slider.hover({ force: true, position: { x: sliderOffsetWidth - selectedRange, y: 0 } });
         await this.page.mouse.up();
-        this.submitCookie();
-        await this.page.getByRole('link', { name: 'OK' }).click();
-
-        // await this.page.locator(this.submitPriceFilterBtn).click();
+        await this.page.locator(this.submitPriceFilterBtn).click();
     }
 
     /**
@@ -95,17 +92,22 @@ export class PlexsupplyCategoryPage extends BasePage {
      * 
      */
     public async checkResultsOfPriceSearch() {
-        let fromPriceText = await this.page.locator(this.filterFromPrice).innerText(); // Убедитесь, что `this.filterFromPrice` содержит правильный селектор
+        let fromPriceText = await this.page.locator(this.filterFromPrice).innerText(); 
         let fromPrice = parseFloat(fromPriceText.replace("$", ""));
         let toPriceText = await this.page.locator(this.filterToPrice).innerText();
         let toPrice = parseFloat(toPriceText.replace("$", ""));
         let priceElements = await this.page.locator(this.productCardFinalPrice).allTextContents();
 
         for (const priceText of priceElements) {
-            const cleanPriceText = priceText.replace(" ", "");
-            const currentTruePrice = parseFloat(cleanPriceText);
-            await expect(currentTruePrice).toBeGreaterThanOrEqual(fromPrice);
-            await expect(currentTruePrice).toBeLessThanOrEqual(toPrice);
+            let regularPrice = priceText.match(/\$\d+\.\d+/);
+            if (null != regularPrice) {
+                let price = regularPrice[0];
+                const cleanPriceText = price.replace("$", "");
+                const currentTruePrice = parseFloat(cleanPriceText);
+                await expect(currentTruePrice).toBeGreaterThanOrEqual(fromPrice);
+                await expect(currentTruePrice).toBeLessThanOrEqual(toPrice);
+            }
+            
         }
     }
 }
